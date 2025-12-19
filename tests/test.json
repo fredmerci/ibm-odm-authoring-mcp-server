@@ -1,0 +1,3480 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "IBM Operational Decision Manager Decision Center API",
+        "description": "Explore, build, test, and deploy decision services that are stored in Decision Center",
+        "termsOfService": "http://www.ibm.com/legal/us/en/?lnk=flg-tous-usen",
+        "version": "v1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:9060/decisioncenter-api",
+            "description": "Generated server url"
+        }
+    ],
+    "paths": {
+        "/v1/webhook/notify": {
+            "put": {
+                "tags": [
+                    "Manage"
+                ],
+                "summary": "Register a webhook to notify other applications of events that are coming from Decision Center",
+                "description": "Provides Decision Center with a URL, and optionally, an authentication token to send data to other applications. If you must provide more than one webhook, you can invoke this endpoint multiple times.",
+                "operationId": "registerWebhook",
+                "parameters": [
+                    {
+                        "name": "url",
+                        "in": "query",
+                        "description": "The URL of the server to send notifications",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "$ref": "#/components/parameters/datasource"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string",
+                                "description": "The authentication token of the remote server"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Webhook"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Authorization": [
+                            "global"
+                        ]
+                    },
+                    {
+                        "basic": [
+                            "global"
+                        ]
+                    }
+                ]
+            }
+        },
+        "/v1/releases/{releaseId}/reject": {
+            "post": {
+                "tags": [
+                    "Govern"
+                ],
+                "summary": "Reject the open release of a decision service",
+                "description": "An authenticated approver can reject a release and include an optional comment to explain the rejection.<br> Note: The authenticated activity owner or administrator can reject the release on behalf of an approver. In this case, the approver's name must be provided as a parameter.",
+                "operationId": "rejectRelease",
+                "parameters": [
+                    {
+                        "name": "releaseId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "userName",
+                        "in": "query",
+                        "description": "the name of the user on behalf of whom rejecting the release.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "$ref": "#/components/parameters/datasource"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "text/plain": {
+                            "schema": {
+                                "type": "string",
+                                "description": "the rejection comment."
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "Authorization": [
+                            "global"
+                        ]
+                    },
+                    {
+                        "basic": [
+                            "global"
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "About": {
+                "type": "object",
+                "properties": {
+                    "datasourceName": {
+                        "type": "string"
+                    },
+                    "schemaVersion": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "patchLevel": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Activity": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "InProgress",
+                            "ReadyForApproval",
+                            "Complete",
+                            "Canceled",
+                            "Rejected",
+                            "Working",
+                            "Finished",
+                            "NotReviewed",
+                            "ApprovedChanges",
+                            "RejectedChanges"
+                        ]
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "targetDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "approvers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contributor"
+                        }
+                    },
+                    "authors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contributor"
+                        }
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "ActivityInput": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "targetDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "approversNames": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "authorsNames": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "owner",
+                    "targetDate"
+                ]
+            },
+            "ApiError": {
+                "description": "Error object returned by endpoints in the body of the response",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Summary or human readable code of the error"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Detailed description of the error"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Http Status string. Eg: NOT_FOUND"
+                    },
+                    "ref": {
+                        "type": "string",
+                        "description": "Internal reference of the error"
+                    },
+                    "errorCode": {
+                        "type": "string",
+                        "description": "IBM error code (optional)"
+                    },
+                    "details": {
+                        "type": "array",
+                        "description": "Technical details about the error.",
+                        "items": {
+                            "type": "string",
+                            "description": "Technical details about the error."
+                        }
+                    }
+                }
+            },
+            "AssetApplicationResponseDtoProjectSpec": {
+                "type": "object",
+                "properties": {
+                    "assetGenerationResponseDto": {
+                        "$ref": "#/components/schemas/AssetGenerationResponseDtoProjectSpec"
+                    }
+                }
+            },
+            "AssetGenerationResponseDtoProjectSpec": {
+                "type": "object",
+                "properties": {
+                    "assetSpec": {
+                        "$ref": "#/components/schemas/ProjectSpec"
+                    }
+                }
+            },
+            "BaseRuleflow": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "project": {
+                        "type": "string"
+                    },
+                    "rulePackage": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "permaLink": {
+                        "type": "string"
+                    },
+                    "properties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Property"
+                        }
+                    },
+                    "tasks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RuleTask"
+                        }
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "BaselineInfo": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "typeFQN": {
+                        "type": "string"
+                    },
+                    "parentId": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "createdon": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "prjName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Branch": {
+                "type": "object",
+                "description": "A branch, also known as 'unmanaged' branch, as opposed to release or activities",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "main": {
+                        "type": "boolean",
+                        "description": "Is this the 'main' branch of the Decision Service?"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "BusinessClassSpec": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Composite",
+                            "Enumeration"
+                        ]
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "jsonname": {
+                        "type": "string"
+                    },
+                    "Fields": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FieldSpec"
+                        }
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "ChangeActivity": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "InProgress",
+                            "ReadyForApproval",
+                            "Complete",
+                            "Canceled",
+                            "Rejected",
+                            "Working",
+                            "Finished",
+                            "NotReviewed",
+                            "ApprovedChanges",
+                            "RejectedChanges"
+                        ]
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "targetDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "approvers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contributor"
+                        }
+                    },
+                    "authors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contributor"
+                        }
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "CleanupReport": {
+                "type": "object",
+                "properties": {
+                    "datasourceName": {
+                        "type": "string"
+                    },
+                    "launchTimestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cleanupDate": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2020-Sep-01"
+                    },
+                    "completed": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "stopped": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "dryRun": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "handleReports": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "recyclebinMode": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "eclassFQN": {
+                        "type": "string"
+                    },
+                    "exceptions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "messages": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "deletedBaselines": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BaselineInfo"
+                        }
+                    },
+                    "deletedElt": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OldEltInfo"
+                        }
+                    },
+                    "deletedVEltInfo": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VEltInfo"
+                        }
+                    }
+                }
+            },
+            "CleanupReports": {
+                "example": [
+                    {
+                        "datasourceName": "jdbc/ilogDataSource",
+                        "launchTimestamp": "2021-01-20T10:30:00",
+                        "cleanupDate": "2020-Sep-01",
+                        "completed": true,
+                        "stopped": false,
+                        "dryRun": false,
+                        "handleReports": false,
+                        "recyclebinMode": false,
+                        "exceptions": [],
+                        "messages": [],
+                        "deletedBaselines": [],
+                        "deletedElt": [],
+                        "deletedVEltInfo": []
+                    }
+                ]
+            },
+            "CleanupStatus": {
+                "type": "object",
+                "properties": {
+                    "isRunning": {
+                        "type": "boolean"
+                    },
+                    "cleanupDate": {
+                        "type": "string",
+                        "example": "2020-Sep-01"
+                    },
+                    "eclassFQN": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Contributor": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "fullname": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DataModelSpec": {
+                "type": "object",
+                "properties": {
+                    "api_version": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "glossary": {
+                        "$ref": "#/components/schemas/GlossarySpec"
+                    },
+                    "classes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BusinessClassSpec"
+                        }
+                    }
+                }
+            },
+            "DecisionService": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "advancedProperties": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "DeploymentConfiguration": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "production": {
+                        "type": "boolean"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "ruleAppName": {
+                        "type": "string"
+                    },
+                    "ruleAppVersion": {
+                        "type": "string"
+                    },
+                    "snapshotMode": {
+                        "type": "string",
+                        "enum": [
+                            "Always",
+                            "Never",
+                            "UserDefined"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "DeploymentMessage": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "ruleArtifact": {
+                        "$ref": "#/components/schemas/RuleArtifact"
+                    },
+                    "severity": {
+                        "type": "string",
+                        "enum": [
+                            "DEBUG",
+                            "INFO",
+                            "WARNING",
+                            "ERROR",
+                            "SEMANTIC"
+                        ]
+                    }
+                }
+            },
+            "DeploymentResult": {
+                "type": "object",
+                "description": "Result returned by a build or deploy operation",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "STARTING",
+                            "STARTED",
+                            "STOPPING",
+                            "STOPPED",
+                            "FAILED",
+                            "COMPLETED",
+                            "ABORTED"
+                        ]
+                    },
+                    "ruleAppName": {
+                        "type": "string",
+                        "description": "The name of the ruleapp created by this deployment"
+                    },
+                    "messages": {
+                        "$ref": "#/components/schemas/PageDeploymentMessage"
+                    },
+                    "snapshot": {
+                        "$ref": "#/components/schemas/DeploymentSnapshot",
+                        "description": "The deployment snapshot created or used for this build or deployment"
+                    },
+                    "servers": {
+                        "type": "array",
+                        "description": "The list of servers this Decision Service was deployed to",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "archive": {
+                        "type": "string",
+                        "description": "The base64 content of the RuleApp archive, if requested by the build or deploy command"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "DeploymentSnapshot": {
+                "type": "object",
+                "description": "A deployment snapshot is a set of project artifacts filtered by a deployment configuration",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "DynamicDomain": {
+                "type": "object",
+                "properties": {
+                    "domainValueProviderName": {
+                        "type": "string"
+                    },
+                    "bomClassFQN": {
+                        "type": "string"
+                    },
+                    "providerClassName": {
+                        "type": "string"
+                    },
+                    "providerResourceName": {
+                        "type": "string"
+                    },
+                    "projectName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "FieldSpec": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "collection": {
+                        "type": "boolean"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "templates": {
+                        "$ref": "#/components/schemas/TemplatesSpec"
+                    },
+                    "jsonname": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "Function": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "definition": {
+                        "type": "string"
+                    },
+                    "project": {
+                        "type": "string"
+                    },
+                    "rulePackage": {
+                        "type": "string"
+                    },
+                    "properties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Property"
+                        }
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "html": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "GlossarySpec": {
+                "type": "object",
+                "properties": {
+                    "terms": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TermSpec"
+                        }
+                    }
+                }
+            },
+            "Group": {
+                "type": "object",
+                "description": "The JSON representation of a group",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "securityProfile": {
+                        "type": "string"
+                    },
+                    "users": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "Metadata": {
+                "type": "object",
+                "properties": {
+                    "display_name": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "type": "string"
+                    },
+                    "publisher": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "summary": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Metrics": {
+                "type": "object"
+            },
+            "NamedObject": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "OldEltInfo": {
+                "type": "object",
+                "properties": {
+                    "eltName": {
+                        "type": "string"
+                    },
+                    "eltId": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "typeFQN": {
+                        "type": "string"
+                    },
+                    "createdon": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "prjName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Operation": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "extractor": {
+                        "type": "string"
+                    },
+                    "extractorQuery": {
+                        "type": "string"
+                    },
+                    "extractorValidator": {
+                        "type": "string"
+                    },
+                    "rulesetName": {
+                        "type": "string"
+                    },
+                    "project": {
+                        "type": "string"
+                    },
+                    "permaLink": {
+                        "type": "string"
+                    },
+                    "ruleflow": {
+                        "$ref": "#/components/schemas/BaseRuleflow"
+                    },
+                    "referencedVariables": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OperationVariable"
+                        }
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "OperationSpec": {
+                "type": "object",
+                "properties": {
+                    "api_version": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "parameters": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ParameterSpec"
+                        }
+                    }
+                }
+            },
+            "OperationVariable": {
+                "type": "object",
+                "properties": {
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "bomType": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "verbalization": {
+                        "type": "string"
+                    },
+                    "initialValue": {
+                        "type": "string"
+                    },
+                    "direction": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "bomType",
+                    "name"
+                ]
+            },
+            "PackageSpec": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "artifacts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RuleSpec"
+                        }
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "PageActivity": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Activity"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageBaseRuleflow": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/BaseRuleflow"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageBranch": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Branch"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageDecisionService": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/DecisionService"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageDeploymentConfiguration": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentConfiguration"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageDeploymentMessage": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentMessage"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageDeploymentResult": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentResult"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageDynamicDomain": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/DynamicDomain"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageFunction": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Function"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageGroup": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Group"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageNamedObject": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/NamedObject"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageOperation": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Operation"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageProject": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Project"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageQuery": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Query"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageRelease": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Release"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageRulePackage": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/RulePackage"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageServer": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Server"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageServerExt": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/ServerExt"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageSnapshot": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Snapshot"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageTechnicalRule": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/TechnicalRule"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageTestReport": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/TestReport"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageTestSuite": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/TestSuite"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageUser": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/User"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageVariableSet": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/VariableSet"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "PageWebhook": {
+                "type": "object",
+                "properties": {
+                    "elements": {
+                        "type": "array",
+                        "description": "The elements contained in the page",
+                        "items": {
+                            "$ref": "#/components/schemas/Webhook"
+                        }
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Total elements count"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number. Starts at 0."
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of elements of the current page"
+                    }
+                }
+            },
+            "ParameterSpec": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "direction": {
+                        "type": "string"
+                    },
+                    "verbalization": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "direction",
+                    "name"
+                ]
+            },
+            "Project": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "ProjectSpec": {
+                "type": "object",
+                "properties": {
+                    "api_version": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/Metadata"
+                    },
+                    "operation": {
+                        "$ref": "#/components/schemas/OperationSpec"
+                    },
+                    "datamodel": {
+                        "$ref": "#/components/schemas/DataModelSpec"
+                    },
+                    "taskmodel": {
+                        "$ref": "#/components/schemas/TaskModelSpec"
+                    }
+                }
+            },
+            "Property": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Query": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "definition": {
+                        "type": "string"
+                    },
+                    "lastChangedBy": {
+                        "type": "string"
+                    },
+                    "html": {
+                        "type": "string"
+                    },
+                    "includeDependencies": {
+                        "type": "boolean"
+                    },
+                    "project": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "Release": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "InProgress",
+                            "ReadyForApproval",
+                            "Complete",
+                            "Canceled",
+                            "Rejected",
+                            "Working",
+                            "Finished",
+                            "NotReviewed",
+                            "ApprovedChanges",
+                            "RejectedChanges"
+                        ]
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "targetDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "approvers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contributor"
+                        }
+                    },
+                    "initial": {
+                        "type": "boolean",
+                        "description": "Is this release the initial one, corresponding to the creation of the Decision Service"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "ReleaseInput": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "targetDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "approversNames": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "parentId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "owner",
+                    "targetDate"
+                ]
+            },
+            "ReportBasicDescription": {
+                "type": "object",
+                "properties": {
+                    "datasourceName": {
+                        "type": "string",
+                        "default": "jdbc/ilogDataSource"
+                    },
+                    "cleanupDate": {
+                        "type": "string",
+                        "example": "2020-Sep-01"
+                    },
+                    "completed": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "stopped": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "dryRun": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "handleReports": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "recyclebinMode": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            },
+            "RequirementSpec": {
+                "type": "object",
+                "properties": {
+                    "from": {
+                        "type": "string"
+                    },
+                    "condition": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "from"
+                ]
+            },
+            "RuleArtifact": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    }
+                }
+            },
+            "RuleFlowSpec": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "ruleTasks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RuleTask"
+                        }
+                    }
+                }
+            },
+            "RulePackage": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "projectName": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "RuleSpec": {
+                "type": "object",
+                "properties": {
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "rule",
+                            "dt"
+                        ]
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "bal": {
+                        "type": "string"
+                    },
+                    "default": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "RuleTask": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "algorithm": {
+                        "type": "string",
+                        "enum": [
+                            "sequential",
+                            "fastpath",
+                            "reteplus",
+                            "default"
+                        ]
+                    },
+                    "exitCriteria": {
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "rule",
+                            "ruleinstance"
+                        ]
+                    },
+                    "ordering": {
+                        "type": "string",
+                        "enum": [
+                            "default",
+                            "odmdefault",
+                            "literal",
+                            "priority"
+                        ]
+                    },
+                    "select": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "requirements": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RequirementSpec"
+                        }
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "SQLScriptStatus": {
+                "type": "object",
+                "description": "Information on SQL script execution",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "Execution status, one of RUNNING, SUCCESS, FAILURE",
+                        "enum": [
+                            "RUNNING",
+                            "SUCCESS",
+                            "FAILURE"
+                        ]
+                    },
+                    "runningStatement": {
+                        "type": "string",
+                        "description": "Running statment if any"
+                    },
+                    "errorMessage": {
+                        "type": "string",
+                        "description": "Error message if any"
+                    },
+                    "runningStmt": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "errorMsg": {
+                        "type": "string",
+                        "writeOnly": true
+                    }
+                }
+            },
+            "Server": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the server"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "The URL of the server"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "The description of the server"
+                    },
+                    "loginServer": {
+                        "type": "string",
+                        "description": "The name of the user allowed to access the server"
+                    },
+                    "loginPassword": {
+                        "type": "string",
+                        "description": "The password of the user allowed to access the server"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "description": "The type of the server",
+                        "enum": [
+                            "RES, DECISION_RUNNER"
+                        ]
+                    },
+                    "authenticationKind": {
+                        "type": "string",
+                        "description": "The type of authentication used by the server",
+                        "enum": [
+                            "BASIC_AUTH, OAUTH"
+                        ]
+                    },
+                    "authenticationProvider": {
+                        "type": "string",
+                        "description": "The name of the authentication provider to use (for OAUTH authentication kind)"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "description": "A list of groups allowed to use this server. A list with the single element * means all groups are allowed to use this server",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "kind",
+                    "name",
+                    "url"
+                ]
+            },
+            "ServerExt": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the server"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "The URL of the server"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "The description of the server"
+                    },
+                    "loginServer": {
+                        "type": "string",
+                        "description": "The name of the user allowed to access the server"
+                    },
+                    "loginPassword": {
+                        "type": "string",
+                        "description": "The password of the user allowed to access the server"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "description": "The type of the server",
+                        "enum": [
+                            "RES, DECISION_RUNNER"
+                        ]
+                    },
+                    "authenticationKind": {
+                        "type": "string",
+                        "description": "The type of authentication used by the server",
+                        "enum": [
+                            "BASIC_AUTH, OAUTH"
+                        ]
+                    },
+                    "authenticationProvider": {
+                        "type": "string",
+                        "description": "The name of the authentication provider to use (for OAUTH authentication kind)"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "description": "A list of groups allowed to use this server. A list with the single element * means all groups are allowed to use this server",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "alternateURL": {
+                        "type": "string",
+                        "description": "The URL of the server to present to users instead of the value of the property url.<br>If no URL is provided, the value of the property url is set."
+                    },
+                    "production": {
+                        "type": "boolean",
+                        "description": "If true, the server is tagged for production.<br>The property is only consumed by Rule Designer where the production tag is set on servers.On Decision Center, the production tag is set on deployment configurations."
+                    },
+                    "builtIn": {
+                        "type": "boolean",
+                        "description": "If true, the server was created based on a configuration file during the setup of Decision Center.<br>For servers created in Business console or with the dedicated REST API, the property is set to false"
+                    }
+                },
+                "required": [
+                    "kind",
+                    "name",
+                    "url"
+                ]
+            },
+            "ServerPostInput": {
+                "type": "object",
+                "description": "The JSON representation of a server with values to update",
+                "properties": {
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "The URL of the server"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "The description of the server"
+                    },
+                    "loginServer": {
+                        "type": "string",
+                        "description": "The name of the user allowed to access the server"
+                    },
+                    "loginPassword": {
+                        "type": "string",
+                        "description": "The password of the user allowed to access the server"
+                    },
+                    "authenticationKind": {
+                        "type": "string",
+                        "description": "The type of authentication used by the server",
+                        "enum": [
+                            "BASIC_AUTH, OAUTH"
+                        ]
+                    },
+                    "authenticationProvider": {
+                        "type": "string",
+                        "description": "The name of the authentication provider to use (for OAUTH authentication kind)"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "description": "A list of groups allowed to use this server. A list with the single element * means all groups are allowed to use this server",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "ServerPutInput": {
+                "type": "object",
+                "description": "The JSON representation of a server",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the server"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "The URL of the server"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "The description of the server"
+                    },
+                    "loginServer": {
+                        "type": "string",
+                        "description": "The name of the user allowed to access the server"
+                    },
+                    "loginPassword": {
+                        "type": "string",
+                        "description": "The password of the user allowed to access the server"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "description": "The type of the server",
+                        "enum": [
+                            "RES, DECISION_RUNNER"
+                        ]
+                    },
+                    "authenticationKind": {
+                        "type": "string",
+                        "description": "The type of authentication used by the server",
+                        "enum": [
+                            "BASIC_AUTH, OAUTH"
+                        ]
+                    },
+                    "authenticationProvider": {
+                        "type": "string",
+                        "description": "The name of the authentication provider to use (for OAUTH authentication kind)"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "description": "A list of groups allowed to use this server. A list with the single element * means all groups are allowed to use this server",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "kind",
+                    "name",
+                    "url"
+                ]
+            },
+            "Snapshot": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "StandardSnapshot": {
+                "type": "object",
+                "description": "A 'standard' snapshot reflects the state of a Decision Service at a given point in time",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "initial": {
+                        "type": "boolean"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "TaskModelSpec": {
+                "type": "object",
+                "properties": {
+                    "api_version": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "variableSets": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VariableSetSpec"
+                        }
+                    },
+                    "packages": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PackageSpec"
+                        }
+                    },
+                    "ruleFlow": {
+                        "$ref": "#/components/schemas/RuleFlowSpec"
+                    }
+                }
+            },
+            "TechnicalRule": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "definition": {
+                        "type": "string"
+                    },
+                    "project": {
+                        "type": "string"
+                    },
+                    "rulePackage": {
+                        "type": "string"
+                    },
+                    "properties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Property"
+                        }
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "html": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "TemplatesSpec": {
+                "type": "object",
+                "properties": {
+                    "getter": {
+                        "type": "string"
+                    },
+                    "setter": {
+                        "type": "string"
+                    },
+                    "listAdd": {
+                        "type": "string"
+                    },
+                    "listRemove": {
+                        "type": "string"
+                    },
+                    "listClear": {
+                        "type": "string"
+                    },
+                    "numberAdd": {
+                        "type": "string"
+                    },
+                    "numberRemove": {
+                        "type": "string"
+                    },
+                    "negativeGetter": {
+                        "type": "string"
+                    },
+                    "shortSetter": {
+                        "type": "string"
+                    },
+                    "shortNegativeSetter": {
+                        "type": "string"
+                    },
+                    "function": {
+                        "type": "string"
+                    }
+                }
+            },
+            "TermSpec": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "pluralLabel": {
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "Male",
+                            "Female",
+                            "Neutral",
+                            "Unspecified"
+                        ]
+                    },
+                    "definiteArticleSingular": {
+                        "type": "string"
+                    },
+                    "definiteArticlePlural": {
+                        "type": "string"
+                    },
+                    "indefiniteArticleSingular": {
+                        "type": "string"
+                    },
+                    "indefiniteArticlePlural": {
+                        "type": "string"
+                    },
+                    "demonstrativeArticleSingular": {
+                        "type": "string"
+                    },
+                    "demonstrativeArticlePlural": {
+                        "type": "string"
+                    },
+                    "eachArticleSingular": {
+                        "type": "string"
+                    },
+                    "eachArticlePlural": {
+                        "type": "string"
+                    },
+                    "quantitativeArticleSingular": {
+                        "type": "string"
+                    },
+                    "quantitativeArticlePlural": {
+                        "type": "string"
+                    },
+                    "possessiveArticleSingular": {
+                        "type": "string"
+                    },
+                    "possessiveArticlePlural": {
+                        "type": "string"
+                    }
+                }
+            },
+            "TestReport": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "scenarios": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "The number of scenarios in the test report"
+                    },
+                    "executed": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "The number of executed test in the test report, -1 means no test was executed"
+                    },
+                    "failures": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "The number of failures in the test report"
+                    },
+                    "errors": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "The number of errors in the test report"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The status of the test report",
+                        "enum": [
+                            "STARTING",
+                            "STARTED",
+                            "STOPPING",
+                            "STOPPED",
+                            "FAILED",
+                            "COMPLETED",
+                            "ABORTED"
+                        ]
+                    },
+                    "errorMessage": {
+                        "type": "string",
+                        "description": "The error reason of the test report"
+                    }
+                },
+                "required": [
+                    "errorMessage",
+                    "errors",
+                    "executed",
+                    "failures",
+                    "name",
+                    "scenarios",
+                    "status"
+                ]
+            },
+            "TestSuite": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "UpdateReleaseInput": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "targetDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "approversNames": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "owner",
+                    "targetDate"
+                ]
+            },
+            "User": {
+                "type": "object",
+                "description": "The JSON representation of a user",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "VEltInfo": {
+                "type": "object",
+                "properties": {
+                    "versionId": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "versDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "major": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "minor": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "isDeletionVers": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "eltOId": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "eltId": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "typeFQN": {
+                        "type": "string"
+                    },
+                    "eltName": {
+                        "type": "string"
+                    },
+                    "prjId": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "projectName": {
+                        "type": "string"
+                    },
+                    "branchId": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "branchName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidationActivity": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "documentation": {
+                        "type": "string"
+                    },
+                    "buildMode": {
+                        "type": "string",
+                        "description": "Represents the type of a rule engine: classic rule engine or decision engine",
+                        "enum": [
+                            "DecisionEngine",
+                            "ClassicEngine"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "InProgress",
+                            "ReadyForApproval",
+                            "Complete",
+                            "Canceled",
+                            "Rejected",
+                            "Working",
+                            "Finished",
+                            "NotReviewed",
+                            "ApprovedChanges",
+                            "RejectedChanges"
+                        ]
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "targetDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "approvers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contributor"
+                        }
+                    },
+                    "authors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contributor"
+                        }
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "Branch",
+                            "Release",
+                            "ChangeActivity",
+                            "ValidationActivity",
+                            "StandardSnapshot",
+                            "DeploymentSnapshot"
+                        ]
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "Variable": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "list": {
+                        "type": "boolean"
+                    },
+                    "initialValue": {
+                        "type": "string"
+                    },
+                    "verbalization": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "type"
+                ]
+            },
+            "VariableSet": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "internalId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastchangedBy": {
+                        "type": "string"
+                    },
+                    "lastChangedOn": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "variables": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Variable"
+                        }
+                    },
+                    "rulePackage": {
+                        "type": "string"
+                    },
+                    "project": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "VariableSetSpec": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "variables": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Variable"
+                        }
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "Webhook": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "authToken": {
+                        "type": "string"
+                    }
+                }
+            },
+            "WipeStatus": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "datasource": {
+                "name": "datasource",
+                "in": "query",
+                "description": "The JNDI name of the Decision Center data source. If not specified, it defaults to jdbc/ilogDataSource",
+                "required": false,
+                "allowEmptyValue": false,
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        "securitySchemes": {
+            "Authorization": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header"
+            },
+            "basic": {
+                "type": "http",
+                "scheme": "basic"
+            }
+        }
+    }
+}

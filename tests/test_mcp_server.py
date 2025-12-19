@@ -19,7 +19,7 @@ import argparse
 import mcp.types as types
 from mcp.server.fastmcp import FastMCP
 import json
-from decisioncenter_mcp_server.MCPServer import MCPServer, parse_arguments, create_credentials, INSTRUCTIONS
+from decisioncenter_mcp_server.MCPServer import MCPServer, parse_arguments, create_credentials, init, INSTRUCTIONS
 from decisioncenter_mcp_server.Credentials import Credentials
 
 # Test fixtures
@@ -95,6 +95,10 @@ def test_server_initialization(mcp_server):
           {"transport": "streamable-http", "host": "0.0.0.0", "port": 3000, "mount_path": "/mcp"}  # Test remote arguments with default values
     ),
     (
+        ["--tags",  "Manage", "--tools",  "Tool1", "--no-tools",  "Tool2"],
+          {"tags": ["Manage"],  "tools": ["Tool1"],  "no_tools": ["Tool2"]}
+    ),
+    (
         [],  # No arguments
         {"scope": "openid", "verifyssl": "True", "log_level": "INFO", "transport":"stdio"}  # Default values
     ),
@@ -162,6 +166,53 @@ def test_ssl_verification(verify_ssl, expected):
     )
     credentials = create_credentials(args)
     assert credentials.verify_ssl == expected
+
+# Test tags,tool,no-tools verification
+@pytest.mark.parametrize("tags, expected_tags", [
+    (["Admin", "Build", "DBAdmin"], ["admin", "build", "dbadmin"]),
+    (["Explore"],                   ["explore"])
+])
+@pytest.mark.parametrize("tools, expected_tools", [
+    (["Tool1", "Tool2", "TOOL3"], ["tool1", "tool2", "tool3"]),
+    (["tool4"],                   ["tool4"])
+])
+@pytest.mark.parametrize("notools, expected_notools", [
+    (["Tool1", "Tool2", "TOOL3"], ["tool1", "tool2", "tool3"]),
+    (["tool4"],                   ["tool4"])
+])
+def test_tags_verification(tags, expected_tags, tools, expected_tools, notools, expected_notools):
+    args = argparse.Namespace(
+        url="http://test:9060/decisioncenter-api",
+        username="test_user",
+        password="test_pass",
+        zenapikey=None,
+        client_id=None,
+        client_secret=None,
+        token_url=None,
+        scope="openid",
+        verifyssl="True",
+        ssl_cert_path=None,
+        pkjwt_cert_path=None,
+        pkjwt_key_path=None,
+        pkjwt_key_password=None,
+        mtls_cert_path=None,
+        mtls_key_path=None,
+        mtls_key_password=None,
+        console_auth_type=None,
+        runtime_auth_type=None,
+        log_level="INFO",
+        tags=tags,
+        tools=tools,
+        no_tools=notools,
+        transport=None,
+        host=None,
+        port=None,
+        mount_path=None,
+    )
+    server = init(args)
+    assert server.tags == expected_tags
+    assert server.tools == expected_tools
+    assert server.no_tools == expected_notools
 
 # Test environment variables
 def test_environment_variables():
@@ -311,7 +362,7 @@ async def test_list_tools(server, mock_manager):
     assert tools[1].name == "endpoint2", f"{repr(tools[1])}"
     assert tools[1].title == "summary2"
     assert tools[1].description == "description2"
-    
+
     # Verify repository updates
     assert len(server.repository) == 2
     assert "endpoint1" in server.repository

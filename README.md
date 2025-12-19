@@ -9,7 +9,13 @@ It enables you to:
 
 ## Features
 
+- **Tool Integration:** Expose ODM Decision Center REST API endpoints as tools
+- **Authentication:** Zen API Key, Basic Auth, and OpenID Connect
+- **Multi-Platform:** Works with Watson Orchestrate, Claude Desktop, and Cursor AI
+
 ## Quickstart: Claude Desktop Integration
+
+For detailed instructions on setting up and using Claude Desktop with the Decision MCP Server, see the [Claude Desktop Integration Guide](/docs/Claude-desktop-integration-guide.md).
 
 ### Demo Video
 
@@ -46,7 +52,9 @@ It enables you to:
 > Parameters specific to Decision Center REST API
 >| CLI Argument | Environment Variable | Description | Default |
 >|--------------|----------------------|-------------|---------|
->| `--tags`     | `TAGS`               | List of Tags (eg. About Explore Build). Useful to keep only the tools whose tag is in the list. If this option is not specified, all the tools are published by the MCP server. | |
+>| `--tags`     | `TAGS`               | List of tags (eg. About Explore Build). Useful to keep only the tools whose tag is in the list. If this option is not specified, all the tools are published by the MCP server. | |
+>| `--tools`    | `TOOLS`              | List of tools to publish (eg. decisionServices releases createRelease). This option can be used along with --tags but it takes precedence over the option --no-tools | |
+>| `--no-tools` | `NO_TOOLS`           | List of tools to ignore  (eg. launchCleanup wipe executeSqlScript). This option can be used along with --tags but is ignored if the option --tools is specified. | |
 
 > Parameters to start the MCP server in remote mode (allowing connections from remote MCP clients) 
 >| CLI Argument | Environment Variable | Description | Default |

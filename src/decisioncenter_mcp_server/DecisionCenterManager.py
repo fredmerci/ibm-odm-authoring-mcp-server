@@ -20,6 +20,8 @@ import os.path
 from openapi_parser import parse
 import base64
 from email.message import Message
+from pathlib import Path
+import tempfile
 
 class DecisionCenterManager:
 
@@ -118,7 +120,6 @@ class DecisionCenterManager:
                     openapi_json = self.fix_openapi(response.json())
 
                     debug = self.logger.isEnabledFor(logging.DEBUG)
-                    import tempfile
                     with tempfile.NamedTemporaryFile(delete=not debug, delete_on_close=False) as temp:
 
                         # convert json to bytes
@@ -132,12 +133,13 @@ class DecisionCenterManager:
 
                         # Parse
                         self.logger.debug("parsing")
+                        previous_level = self.logger.root.level
                         logging.getLogger().setLevel(logging.WARNING)   # avoid lots of INFO msg that slows down and can cause a timeout
 
                         endpoints = parse(uri=temp.name,
                                           strict_enum=False)
 
-                        logging.getLogger().setLevel(self.logger.level) # restore the previous level
+                        logging.getLogger().setLevel(previous_level) # restore the previous level
 
                         self.logger.info("Decision Center openapi parsing successful")
                         return endpoints
@@ -154,7 +156,7 @@ class DecisionCenterManager:
     def fetch_endpoints(self):
         return self._fetch_endpoints(uri = self.credentials.odm_url + '/v3/api-docs')
 
-    def generate_tools_format(self, endpoints, tags: list[str] = []) -> dict[str, types.Tool]:
+    def generate_tools_format(self, endpoints, tags: list[str] = [], tools_to_publish: list[str] = [], tools_to_ignore: list[str] = []) -> dict[str, types.Tool]:
         """
         :no-index:
         Convert the endpoints to the tools format
@@ -248,6 +250,12 @@ class DecisionCenterManager:
                     operation_id = info.operation_id
                     tool_name    = operation_id
 
+                    # optionally ignore tools based on their name
+                    if   len(tools_to_publish) > 0 and tool_name.lower() not in tools_to_publish:
+                        continue # ignore this tool as it is not in the list of tools to be published
+                    elif len(tools_to_ignore) > 0  and tool_name.lower()     in tools_to_ignore:
+                        continue # ignore this tool as it is in the list of tools to be discarded/not published
+
                     input_schema = {'type': 'object', 'properties': {}, 'required': []}
                     parameters   = {}
 
@@ -286,7 +294,7 @@ class DecisionCenterManager:
 
         return tools
 
-    def _invokeDecisionCenterApi(self, method:str, url:str, params_query:dict = {}, params_body:dict = {}, params_file:dict = {}, raw_data = None):
+    def _invokeDecisionCenterApi(self, method:str, url:str, params_query:dict = {}, params_body:dict = {}, params_file:dict = {}, raw_data = None, run_locally:bool = True):
         """
         :no-index:
         Invokes a decision center REST API.
@@ -324,19 +332,29 @@ class DecisionCenterManager:
                 
             elif 'application/octet-stream' in content_type:
                 content = response.content
-                if debug := self.logger.isEnabledFor(logging.DEBUG):
-                    import tempfile
-                    with tempfile.NamedTemporaryFile(delete=False, delete_on_close=False) as f:
-                        f.write(b)
-                        self.logger.debug(f"Saved response in file {f.name}")
 
                 msg = Message()
                 msg['content-disposition'] = response.headers.get('Content-Disposition')
                 filename = msg.get_filename()
+                extension = Path(filename).suffix
+                prefix = filename[:-len(extension)] + '_'
 
-                base64str=base64.b64encode(content).decode()
-                return {'mimeType': content_type, 'filename': filename, 'data': base64str}
-            
+                if run_locally:
+                    with tempfile.NamedTemporaryFile(prefix=prefix, suffix=extension, dir=Path.home(), delete=False, delete_on_close=False) as f:
+                        f.write(content)
+                        f.close()
+                    return {'filename': f.name, 'url': f'file://{f.name}'}
+                
+                else:
+                    if debug := self.logger.isEnabledFor(logging.DEBUG):
+                        with tempfile.NamedTemporaryFile(prefix=prefix, suffix=extension, delete=False, delete_on_close=False) as f:
+                            f.write(content)
+                            f.close()
+                            self.logger.debug(f"Saved response in file {f.name}")
+
+                    base64str=base64.b64encode(content).decode()
+                    return {'mimeType': content_type, 'filename': filename, 'data': base64str}
+
             else:
                 return response.text
         else:
@@ -344,7 +362,7 @@ class DecisionCenterManager:
             self.logger.error(f"Request error, status: {response.status_code}, error: {err}")
             raise Exception(err)
 
-    def invokeDecisionCenterApi(self, endpoint:DecisionCenterEndpoint, arguments:dict[str, str]):
+    def invokeDecisionCenterApi(self, endpoint:DecisionCenterEndpoint, arguments:dict[str, str], run_locally:bool):
 
         # replace any placeholder(s) in the URL by actual value(s)
         url = endpoint.url
@@ -382,4 +400,5 @@ class DecisionCenterManager:
                                              params_query= params_query,
                                              params_body = params_body,
                                              params_file = params_file,
-                                             raw_data = raw_data)
+                                             raw_data = raw_data,
+                                             run_locally = run_locally)

@@ -23,6 +23,7 @@ import logging
 import json
 import argparse
 import os
+import sys
 
 from .Credentials import Credentials
 from .DecisionCenterManager import DecisionCenterManager
@@ -37,12 +38,15 @@ For more information, please refer to the documentation.
 
 class MCPServer:
 
-    def __init__(self, credentials: Credentials, tags: list[str] = [],
+    def __init__(self, credentials: Credentials,
+                 tags: list[str] = [], tools: list[str] = [], no_tools: list[str] = [],
                  transport: Optional[str] = 'stdio', host: Optional[str] = '0.0.0.0', port: Optional[int] = 3000, path: Optional[str] = '/mcp'):
         # Get logger for this class
         self.logger = logging.getLogger(__name__)
         self.credentials = credentials
         self.tags: list[str] = tags
+        self.tools: list[str] = tools       # explicit list of tools to publish
+        self.no_tools: list[str] = no_tools # explicit list of tools to discard
         self.transport = transport
         self.host      = host
         self.port      = port
@@ -56,10 +60,10 @@ class MCPServer:
         List available tools.
         Each tool specifies its arguments using JSON Schema validation.
         """
-        self.logger.info("Listing ODM Decision Center tools")
+        self.logger.info(f"Listing ODM Decision Center tools {repr(self.tools)}")
 
         endpoints       = self.manager.fetch_endpoints()
-        self.repository = self.manager.generate_tools_format(endpoints, self.tags)
+        self.repository = self.manager.generate_tools_format(endpoints, self.tags, self.tools, self.no_tools)
 
         tools = []
         for tool_name, endpoint in self.repository.items():
@@ -80,7 +84,7 @@ class MCPServer:
             raise ValueError(f"Unknown tool: {name}")
 
         # this call may throw an exception, handled by Server.call_tool.handler
-        result = self.manager.invokeDecisionCenterApi(endpoint, arguments)
+        result = self.manager.invokeDecisionCenterApi(endpoint, arguments, self.transport == 'stdio')
 
         # Handle dictionary response
         if isinstance(result, dict):
@@ -131,7 +135,7 @@ def init_logging(level_name):
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    logging.info(f"Logging level set to: {logging.getLevelName(level)}")
+    logging.info(f"Running Python {sys.version_info}. Logging level set to: {logging.getLevelName(level)}")
 
 def create_credentials(args):
     verifyssl = args.verifyssl != "False"
@@ -184,7 +188,9 @@ def init(args):
     credentials = create_credentials(args)
     server = MCPServer(
         credentials=credentials,
-        tags=[tag.lower() for tag in args.tags] if args.tags else [],
+        tags    =[tag.lower()  for tag  in args.tags]     if args.tags else [],
+        tools   =[tool.lower() for tool in args.tools]    if args.tools else [],
+        no_tools=[tool.lower() for tool in args.no_tools] if args.no_tools else [],
         transport=args.transport, host=args.host, port=args.port, path=args.mount_path,
     )
     return server
@@ -220,7 +226,9 @@ def parse_arguments():
                         help="Set the logging level (default: INFO)")
 
     # Decision Center REST API specific arguments
-    parser.add_argument("--tags",              type=str, default=os.getenv("TAGS"), nargs='+', help="List of Tags (eg. About Explore Build). Useful to keep only the tools whose tag is in the list. If this option is not specified, all the tools are published by the MCP server.")
+    parser.add_argument("--tags",              type=str, default=os.getenv("TAGS"),     nargs='+', help="List of Tags (eg. About Explore Build). Useful to keep only the tools whose tag is in the list. If this option is not specified, all the tools are published by the MCP server.")
+    parser.add_argument("--tools",             type=str, default=os.getenv("TOOLS"),    nargs='+', help="Explicit list of tools to publish. All the other tools are filtered out. If this option is not specified, all the tools are published by the MCP server.")
+    parser.add_argument("--no-tools",          type=str, default=os.getenv("NO_TOOLS"), nargs='+', help="Explicit list of tools to discard. All the other tools are published. Option ignored if the option --tools is provided. If this option is not specified, all the tools are published by the MCP server.")
         
     return parser.parse_args()
 
