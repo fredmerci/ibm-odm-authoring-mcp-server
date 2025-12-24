@@ -62,9 +62,6 @@ class MCPServer:
         """
         self.logger.info(f"Listing ODM Decision Center tools {repr(self.tools)}")
 
-        endpoints       = self.manager.fetch_endpoints()
-        self.repository = self.manager.generate_tools_format(endpoints, self.tags, self.tools, self.no_tools)
-
         tools = []
         for tool_name, endpoint in self.repository.items():
             tools.append(endpoint.tool)
@@ -127,6 +124,10 @@ class MCPServer:
         self.server._mcp_server.call_tool()(self.call_tool)
 
         self.server.run(transport=self.transport)
+
+    def update_repository(self):
+        endpoints       = self.manager.fetch_endpoints()
+        self.repository = self.manager.generate_tools_format(endpoints, self.tags, self.tools, self.no_tools)
 
 def init_logging(level_name):
     level=getattr(logging, level_name, logging.INFO)
@@ -193,6 +194,7 @@ def init(args):
         no_tools=[tool.lower() for tool in args.no_tools] if args.no_tools else [],
         transport=args.transport, host=args.host, port=args.port, path=args.mount_path,
     )
+    server.update_repository()
     return server
 
 def parse_arguments():
