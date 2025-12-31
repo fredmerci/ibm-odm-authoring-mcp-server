@@ -136,7 +136,7 @@ def init_logging(level_name):
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    logging.info(f"Running Python {sys.version_info} - Logging level set to: {logging.getLevelName(level)}")
+    logging.info(f"Running Python {sys.version_info} -- Logging level set to: {logging.getLevelName(level)}")
 
 def create_credentials(args):
     verifyssl = args.verifyssl != "False"
